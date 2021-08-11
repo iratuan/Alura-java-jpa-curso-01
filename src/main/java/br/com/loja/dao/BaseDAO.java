@@ -40,7 +40,9 @@ public class BaseDAO<T> {
     public void removeAll() throws Exception {
         List<T> list = this.findAll();
         for (T t : list) {
+            em.getTransaction().begin();
             em.remove(t);
+            em.getTransaction().commit();
         }
     }
 

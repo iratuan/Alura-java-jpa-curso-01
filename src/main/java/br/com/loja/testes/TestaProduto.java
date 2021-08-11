@@ -14,7 +14,9 @@ public class TestaProduto {
         Categoria categoria = new Categoria("Celulares");
 
         // Cria um produto
-        Produto celular = new Produto("IPhone X","Celular muito caro", new BigDecimal("12000"), categoria);
+        Produto celular1 = new Produto("IPhone X","Celular muito caro", new BigDecimal("12000"), categoria);
+        Produto celular2 = new Produto("IPhone X","Celular muito caro", new BigDecimal("12000"), categoria);
+        Produto celular3 = new Produto("IPhone X","Celular muito caro", new BigDecimal("12000"), categoria);
 
         // Istanciando os DAOs
         ProdutoDAO produtoDAO = new ProdutoDAO();
@@ -22,6 +24,19 @@ public class TestaProduto {
 
         // Inserido a categoria
         categoriaDAO.create(categoria);
-        produtoDAO.create(celular);
+        produtoDAO.create(celular1);
+        produtoDAO.create(celular2);
+        produtoDAO.create(celular3);
+
+        System.out.println("Quantidade de produtos: " + produtoDAO.findAll().size());
+
+        try {
+            produtoDAO.removeAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Quantidade de produtos: " + produtoDAO.findAll().size());
     }
+
 }
