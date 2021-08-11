@@ -54,7 +54,7 @@ public class BaseDAO<T> {
     public T update(T entity) throws Exception {
         try{
             em.getTransaction().begin();
-            em.merge(entity);
+            entity = em.merge(entity);
             em.getTransaction().commit();
             return entity;
         }catch (PersistenceException e){

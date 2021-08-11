@@ -253,7 +253,7 @@ public class BaseDAO<T> {
     public T update(T entity) throws Exception {
         try{
             em.getTransaction().begin();
-            em.merge(entity);
+            entity = em.merge(entity);
             em.getTransaction().commit();
             return entity;
         }catch (PersistenceException e){
@@ -479,38 +479,38 @@ Modifique o arquivo pom.xml com o seguinte códig
 
 ```xml
 <plugin>
-	<artifactId>maven-antrun-plugin</artifactId>
-	<version>1.3</version>
-	<executions>
-		<execution>
-			<id>copy-test-persistence</id>
-			<phase>process-test-resources</phase>
-			<configuration>
-				<tasks>
-					<echo>renaming deployment persistence.xml</echo>
-					<move file="${project.build.outputDirectory}/META-INF/persistence.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml.proper"/>
-					<echo>replacing deployment persistence.xml with test version</echo>
-					<copy file="${project.build.testOutputDirectory}/META-INF/persistence-test.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
-				</tasks>
-			</configuration>
-			<goals>
-				<goal>run</goal>
-			</goals>
-		</execution>
-		<execution>
-			<id>restore-persistence</id>
-			<phase>prepare-package</phase>
-			<configuration>
-				<tasks>
-					<echo>restoring the deployment persistence.xml</echo>
-					<move file="${project.build.outputDirectory}/META-INF/persistence.xml.proper" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
-				</tasks>
-			</configuration>
-			<goals>
-				<goal>run</goal>
-			</goals>
-		</execution>
-	</executions>
+    <artifactId>maven-antrun-plugin</artifactId>
+    <version>1.3</version>
+    <executions>
+        <execution>
+            <id>copy-test-persistence</id>
+            <phase>process-test-resources</phase>
+            <configuration>
+                <tasks>
+                    <echo>renaming deployment persistence.xml</echo>
+                    <move file="${project.build.outputDirectory}/META-INF/persistence.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml.proper"/>
+                    <echo>replacing deployment persistence.xml with test version</echo>
+                    <copy file="${project.build.testOutputDirectory}/META-INF/persistence-test.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
+                </tasks>
+            </configuration>
+            <goals>
+                <goal>run</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>restore-persistence</id>
+            <phase>prepare-package</phase>
+            <configuration>
+                <tasks>
+                    <echo>restoring the deployment persistence.xml</echo>
+                    <move file="${project.build.outputDirectory}/META-INF/persistence.xml.proper" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
+                </tasks>
+            </configuration>
+            <goals>
+                <goal>run</goal>
+            </goals>
+        </execution>
+    </executions>
 </plugin>
 ```
 
