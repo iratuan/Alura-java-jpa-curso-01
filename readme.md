@@ -410,39 +410,39 @@ Modifique o arquivo pom.xml com o seguinte códig
 
 ```xml
 <plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.3</version>
-				<executions>
-					<execution>
-						<id>copy-test-persistence</id>
-						<phase>process-test-resources</phase>
-						<configuration>
-							<tasks>
-								<echo>renaming deployment persistence.xml</echo>
-								<move file="${project.build.outputDirectory}/META-INF/persistence.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml.proper"/>
-								<echo>replacing deployment persistence.xml with test version</echo>
-								<copy file="${project.build.testOutputDirectory}/META-INF/persistence-test.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>restore-persistence</id>
-						<phase>prepare-package</phase>
-						<configuration>
-							<tasks>
-								<echo>restoring the deployment persistence.xml</echo>
-								<move file="${project.build.outputDirectory}/META-INF/persistence.xml.proper" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+    <artifactId>maven-antrun-plugin</artifactId>
+    <version>1.3</version>
+    <executions>
+        <execution>
+            <id>copy-test-persistence</id>
+            <phase>process-test-resources</phase>
+            <configuration>
+                <tasks>
+                    <echo>renaming deployment persistence.xml</echo>
+                    <move file="${project.build.outputDirectory}/META-INF/persistence.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml.proper"/>
+                    <echo>replacing deployment persistence.xml with test version</echo>
+                    <copy file="${project.build.testOutputDirectory}/META-INF/persistence-test.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
+                </tasks>
+            </configuration>
+            <goals>
+                <goal>run</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>restore-persistence</id>
+            <phase>prepare-package</phase>
+            <configuration>
+                <tasks>
+                    <echo>restoring the deployment persistence.xml</echo>
+                    <move file="${project.build.outputDirectory}/META-INF/persistence.xml.proper" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
+                </tasks>
+            </configuration>
+            <goals>
+                <goal>run</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
 ```
 
 Ele irá **substituir** o arquivo persistence.xml pelo persistence-test.xml em tempo de execução de testes, garantindo que possamos trabalhar tranquilamente com um banco de produção e outro banco p
