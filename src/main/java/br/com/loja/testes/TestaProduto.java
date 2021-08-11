@@ -1,25 +1,27 @@
 package br.com.loja.testes;
 
-import br.com.loja.models.Produto;
+import br.com.loja.dao.CategoriaDAO;
+import br.com.loja.dao.ProdutoDAO;
+import br.com.loja.model.Categoria;
+import br.com.loja.model.Produto;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.math.BigDecimal;
 
 public class TestaProduto {
     public static void main(String[] args) {
+
+        // Cria uma categoria
+        Categoria categoria = new Categoria("Celulares");
+
         // Cria um produto
-        Produto celular = new Produto("IPhone X","Celular muito caro", new BigDecimal("12000"));
+        Produto celular = new Produto("IPhone X","Celular muito caro", new BigDecimal("12000"), categoria);
 
-        // Cria a entidade de persistencia
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("loja-pu");
-        EntityManager em = emf.createEntityManager();
+        // Istanciando os DAOs
+        ProdutoDAO produtoDAO = new ProdutoDAO();
+        CategoriaDAO categoriaDAO = new CategoriaDAO();
 
-        // Persiste o objeto
-        em.getTransaction().begin();
-        em.persist(celular);
-        em.getTransaction().commit();
-        em.close();
+        // Inserido a categoria
+        categoriaDAO.create(categoria);
+        produtoDAO.create(celular);
     }
 }

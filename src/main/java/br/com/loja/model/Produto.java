@@ -1,4 +1,4 @@
-package br.com.loja.models;
+package br.com.loja.model;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -13,14 +13,18 @@ public class Produto {
     private String descricao;
     private BigDecimal preco;
 
+    @ManyToOne
+    private Categoria categoria;
+
     public Produto(){
 
     }
 
-    public Produto(String nome, String descricao, BigDecimal preco) {
+    public Produto(String nome, String descricao, BigDecimal preco, Categoria categoria) {
         this.nome = nome;
         this.descricao = descricao;
         this.preco = preco;
+        this.categoria = categoria;
     }
 
     public long getId() {
