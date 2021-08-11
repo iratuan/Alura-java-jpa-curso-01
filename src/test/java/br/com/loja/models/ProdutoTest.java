@@ -7,12 +7,9 @@ import br.com.loja.model.Produto;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ProdutoTest {
 
@@ -40,8 +37,32 @@ public class ProdutoTest {
     }
 
     @Test
+    public void deveRetornarUmProduto(){
+        categoriaDAO.create(categoria);
+        produtoDAO.create(produto);
+        assertTrue("Deve resgatar o produto com id #1: " , produtoDAO.getOne(1L).getId() == 1);
+    }
+
+    @Test
     public void deveRetornarUmaListaVazia() throws Exception {
         produtoDAO.removeAll();
         assertEquals("Deve retornar uma lista vazia", 0, produtoDAO.findAll().size());
+    }
+
+    @Test
+    public void deveAtualizarUmProduto() throws Exception {
+        categoriaDAO.create(categoria);
+        Produto p = produtoDAO.create(produto);
+        p.setNome("Produto atualizado");
+        p = produtoDAO.update(p);
+        assertNotNull("Deve retornar um produto atualizado", p);
+        assertTrue("Deve retornar um produto com título atualizado","Produto atualizado".equals(p.getNome()));
+    }
+
+    @Test
+    public void devePesquisarUmProdutoPorNome(){
+        categoriaDAO.create(categoria);
+        produtoDAO.create(produto);
+        assertTrue("Deve retornar, pelo menos, um produto com o título informado: ", produtoDAO.searchByName(produto.getNome()).size() > 0);
     }
 }

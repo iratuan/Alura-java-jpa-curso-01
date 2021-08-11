@@ -199,10 +199,7 @@ Crie agora uma classe generica para encapsular o comportamento básico do DAO
 ```java
 package br.com.loja.dao;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceException;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -212,6 +209,10 @@ public class BaseDAO<T> {
     private EntityManagerFactory emf = Persistence.createEntityManagerFactory("loja-pu");
     private EntityManager em = emf.createEntityManager();
     private Class<T> clazz;
+
+    public EntityManager getEntityManager(){
+        return this.em;
+    }
 
     public BaseDAO(Class clazz){
         this.clazz = clazz;
@@ -236,12 +237,27 @@ public class BaseDAO<T> {
         return this.em.createQuery(cq).getResultList();
     }
 
+    public T getOne(Long id){
+        return  em.find(clazz, id);
+    }
+
     public void removeAll() throws Exception {
         List<T> list = this.findAll();
         for (T t : list) {
             em.getTransaction().begin();
             em.remove(t);
             em.getTransaction().commit();
+        }
+    }
+
+    public T update(T entity) throws Exception {
+        try{
+            em.getTransaction().begin();
+            em.merge(entity);
+            em.getTransaction().commit();
+            return entity;
+        }catch (PersistenceException e){
+            throw new PersistenceException("Erro ao persistir objeto");
         }
     }
 
@@ -254,6 +270,7 @@ public class BaseDAO<T> {
         }
     }
 }
+
 ```
 
 Adicione agora as classes que estendem o BaseDAO passando a classe específica
@@ -263,11 +280,21 @@ package br.com.loja.dao;
 
 import br.com.loja.model.Produto;
 
+import javax.persistence.Query;
+import java.util.List;
+
 public class ProdutoDAO extends BaseDAO<Produto> {
     public ProdutoDAO() {
         super(Produto.class);
     }
+
+    public List<Produto> searchByName(String name) {
+        final Query query = getEntityManager().createQuery("Select p from Produto p where p.nome LIKE CONCAT('%',:name,'%')");
+        query.setParameter("name", name);
+        return query.getResultList();
+    }
 }
+
 ```
 
 ```java
@@ -293,18 +320,18 @@ import br.com.loja.model.Categoria;
 import br.com.loja.model.Produto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class TestaProduto {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         // Cria uma categoria
         Categoria categoria = new Categoria("Celulares");
 
         // Cria um produto
-        Produto celular = new Produto("IPhone X",
-                                      "Celular muito caro", 
-                                      new BigDecimal("12000"), 
-                                      categoria);
+        Produto celular1 = new Produto("IPhone X1","Celular muito caro", new BigDecimal("12000"), categoria);
+        Produto celular2 = new Produto("IPhone X2","Celular muito caro", new BigDecimal("12000"), categoria);
+        Produto celular3 = new Produto("IPhone X3","Celular muito caro", new BigDecimal("12000"), categoria);
 
         // Istanciando os DAOs
         ProdutoDAO produtoDAO = new ProdutoDAO();
@@ -312,8 +339,36 @@ public class TestaProduto {
 
         // Inserido a categoria
         categoriaDAO.create(categoria);
-        produtoDAO.create(celular);
+        produtoDAO.create(celular1);
+        produtoDAO.create(celular2);
+        produtoDAO.create(celular3);
+
+        System.out.println("Quantidade de produtos: " + produtoDAO.findAll().size());
+        for (Produto p: produtoDAO.findAll()) {
+            System.out.println("Produto " + "ID: "+ p.getId() + " - " + p.getNome());
+        }
+
+        System.out.println("Exibindo o produto #1: " + produtoDAO.getOne(1L).getNome());
+
+        produtoDAO.create(celular1);
+        Produto produtoRetornado = produtoDAO.getOne(1L);
+        produtoRetornado.setNome("Produto atualizado");
+        Produto p = produtoDAO.update(produtoRetornado);
+
+        System.out.println("Atualizando um produto: " + p.getNome());
+
+        List<Produto> produtosBuscados = produtoDAO.searchByName("IPhone");
+        System.out.println("Pesquisando produtos por nome e retornando " + produtosBuscados.size() + " resultados");
+
+        try {
+            produtoDAO.removeAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Quantidade de produtos: " + produtoDAO.findAll().size());
     }
+
 }
 
 ```
@@ -327,13 +382,9 @@ import br.com.loja.dao.CategoriaDAO;
 import br.com.loja.dao.ProdutoDAO;
 import br.com.loja.model.Categoria;
 import br.com.loja.model.Produto;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert.*;
 
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceException;
 import java.math.BigDecimal;
 
 import static org.junit.Assert.*;
@@ -352,10 +403,7 @@ public class ProdutoTest {
         // Cria uma categoria
         categoria = new Categoria("Celulares");
         // Cria um produto
-        produto = new Produto("IPhone X", 
-                              "Celular muito caro", 
-                              new BigDecimal("12000"), 
-                              categoria);
+        produto = new Produto("IPhone X", "Celular muito caro", new BigDecimal("12000"), categoria);
     }
 
     @Test
@@ -363,16 +411,37 @@ public class ProdutoTest {
         produtoDAO.removeAll();
         categoriaDAO.create(categoria);
         produtoDAO.create(produto);
-        assertTrue("A lista de produtos, pós insert, deve ser maior que zero: ",
-                   produtoDAO.findAll().size() > 0);
+        assertTrue("A lista de produtos, pós insert, deve ser maior que zero: ", produtoDAO.findAll().size() > 0);
+    }
+
+    @Test
+    public void deveRetornarUmProduto(){
+        categoriaDAO.create(categoria);
+        produtoDAO.create(produto);
+        assertTrue("Deve resgatar o produto com id #1: " , produtoDAO.getOne(1L).getId() == 1);
     }
 
     @Test
     public void deveRetornarUmaListaVazia() throws Exception {
         produtoDAO.removeAll();
-        assertEquals("Deve retornar uma lista vazia", 
-                     0, 
-                     produtoDAO.findAll().size());
+        assertEquals("Deve retornar uma lista vazia", 0, produtoDAO.findAll().size());
+    }
+
+    @Test
+    public void deveAtualizarUmProduto() throws Exception {
+        categoriaDAO.create(categoria);
+        Produto p = produtoDAO.create(produto);
+        p.setNome("Produto atualizado");
+        p = produtoDAO.update(p);
+        assertNotNull("Deve retornar um produto atualizado", p);
+        assertTrue("Deve retornar um produto com título atualizado","Produto atualizado".equals(p.getNome()));
+    }
+
+    @Test
+    public void devePesquisarUmProdutoPorNome(){
+        categoriaDAO.create(categoria);
+        produtoDAO.create(produto);
+        assertTrue("Deve retornar, pelo menos, um produto com o título informado: ", produtoDAO.searchByName(produto.getNome()).size() > 0);
     }
 }
 
@@ -410,42 +479,50 @@ Modifique o arquivo pom.xml com o seguinte códig
 
 ```xml
 <plugin>
-    <artifactId>maven-antrun-plugin</artifactId>
-    <version>1.3</version>
-    <executions>
-        <execution>
-            <id>copy-test-persistence</id>
-            <phase>process-test-resources</phase>
-            <configuration>
-                <tasks>
-                    <echo>renaming deployment persistence.xml</echo>
-                    <move file="${project.build.outputDirectory}/META-INF/persistence.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml.proper"/>
-                    <echo>replacing deployment persistence.xml with test version</echo>
-                    <copy file="${project.build.testOutputDirectory}/META-INF/persistence-test.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
-                </tasks>
-            </configuration>
-            <goals>
-                <goal>run</goal>
-            </goals>
-        </execution>
-        <execution>
-            <id>restore-persistence</id>
-            <phase>prepare-package</phase>
-            <configuration>
-                <tasks>
-                    <echo>restoring the deployment persistence.xml</echo>
-                    <move file="${project.build.outputDirectory}/META-INF/persistence.xml.proper" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
-                </tasks>
-            </configuration>
-            <goals>
-                <goal>run</goal>
-            </goals>
-        </execution>
-    </executions>
+	<artifactId>maven-antrun-plugin</artifactId>
+	<version>1.3</version>
+	<executions>
+		<execution>
+			<id>copy-test-persistence</id>
+			<phase>process-test-resources</phase>
+			<configuration>
+				<tasks>
+					<echo>renaming deployment persistence.xml</echo>
+					<move file="${project.build.outputDirectory}/META-INF/persistence.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml.proper"/>
+					<echo>replacing deployment persistence.xml with test version</echo>
+					<copy file="${project.build.testOutputDirectory}/META-INF/persistence-test.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
+				</tasks>
+			</configuration>
+			<goals>
+				<goal>run</goal>
+			</goals>
+		</execution>
+		<execution>
+			<id>restore-persistence</id>
+			<phase>prepare-package</phase>
+			<configuration>
+				<tasks>
+					<echo>restoring the deployment persistence.xml</echo>
+					<move file="${project.build.outputDirectory}/META-INF/persistence.xml.proper" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
+				</tasks>
+			</configuration>
+			<goals>
+				<goal>run</goal>
+			</goals>
+		</execution>
+	</executions>
 </plugin>
 ```
 
-Ele irá **substituir** o arquivo persistence.xml pelo persistence-test.xml em tempo de execução de testes, garantindo que possamos trabalhar tranquilamente com um banco de produção e outro banco p
+Ele irá **substituir** o arquivo persistence.xml pelo persistence-test.xml em tempo de execução de testes, garantindo que possamos trabalhar tranquilamente com um banco de produção e outro banco para testes.
+
+Um ponto importante que ressalto é sobre o ciclo de vida de entidade JPA como foi bem lembrado pelo instrutor do curso.
+
+![](https://image.slidesharecdn.com/cefet-2013-04-130408163740-phpapp01/95/mapeamento-objetorelacional-com-java-persistence-api-11-638.jpg?cb=1365439124)
+
+
+
+
 
 Feito isso, basta executar o testes e temos nosso primeiro teste de integração, testando a inserção das nossas entidades.
 
