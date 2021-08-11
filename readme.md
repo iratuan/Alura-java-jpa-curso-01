@@ -22,16 +22,16 @@ No arquivo **pom.xml** insira as seguintes dependências:
 
 ```xml
 <dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-			<version>5.4.27.Final</version>
-		</dependency>
+	<groupId>org.hibernate</groupId>
+	<artifactId>hibernate-entitymanager</artifactId>
+	<version>5.4.27.Final</version>
+</dependency>
 
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>1.4.200</version>
-		</dependency>
+<dependency>
+	<groupId>com.h2database</groupId>
+	<artifactId>h2</artifactId>
+	<version>1.4.200</version>
+</dependency>
 ```
 
 Note que utilizaremos o H2 como banco de dados. Caso deseje utilizar qualquer outro banco de dados, basta pesquisar no repositório do **maven** as dependências correspondentes.
