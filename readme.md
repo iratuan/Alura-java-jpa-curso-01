@@ -64,7 +64,7 @@ Dentro da pasta src/main/resources/META-INF, crie um arquivo chamado persistence
             <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:loja"/>
             <property name="javax.persistence.jdbc.user" value="sa"/>
             <property name="javax.persistence.jdbc.password" value=""/>
-
+			
             <!-- Particulares do Hibernate -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
             <property name="hibernate.show_sql" value="true"/>
@@ -239,7 +239,9 @@ public class BaseDAO<T> {
     public void removeAll() throws Exception {
         List<T> list = this.findAll();
         for (T t : list) {
+            em.getTransaction().begin();
             em.remove(t);
+            em.getTransaction().commit();
         }
     }
 
@@ -300,9 +302,9 @@ public class TestaProduto {
 
         // Cria um produto
         Produto celular = new Produto("IPhone X",
-                "Celular muito caro",
-                new BigDecimal("12000"),
-                categoria);
+                                      "Celular muito caro", 
+                                      new BigDecimal("12000"), 
+                                      categoria);
 
         // Istanciando os DAOs
         ProdutoDAO produtoDAO = new ProdutoDAO();
@@ -350,10 +352,10 @@ public class ProdutoTest {
         // Cria uma categoria
         categoria = new Categoria("Celulares");
         // Cria um produto
-        produto = new Produto("IPhone X",
-                "Celular muito caro",
-                new BigDecimal("12000"),
-                categoria);
+        produto = new Produto("IPhone X", 
+                              "Celular muito caro", 
+                              new BigDecimal("12000"), 
+                              categoria);
     }
 
     @Test
@@ -362,15 +364,15 @@ public class ProdutoTest {
         categoriaDAO.create(categoria);
         produtoDAO.create(produto);
         assertTrue("A lista de produtos, pós insert, deve ser maior que zero: ",
-                produtoDAO.findAll().size() > 0);
+                   produtoDAO.findAll().size() > 0);
     }
 
     @Test
     public void deveRetornarUmaListaVazia() throws Exception {
         produtoDAO.removeAll();
-        assertEquals("Deve retornar uma lista vazia",
-                0,
-                produtoDAO.findAll().size());
+        assertEquals("Deve retornar uma lista vazia", 
+                     0, 
+                     produtoDAO.findAll().size());
     }
 }
 
@@ -408,46 +410,44 @@ Modifique o arquivo pom.xml com o seguinte códig
 
 ```xml
 <plugin>
-    <artifactId>maven-antrun-plugin</artifactId>
-    <version>1.3</version>
-    <executions>
-        <execution>
-            <id>copy-test-persistence</id>
-            <phase>process-test-resources</phase>
-            <configuration>
-                <tasks>
-                    <echo>renaming deployment persistence.xml</echo>
-                    <move file="${project.build.outputDirectory}/META-INF/persistence.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml.proper"/>
-                    <echo>replacing deployment persistence.xml with test version</echo>
-                    <copy file="${project.build.testOutputDirectory}/META-INF/persistence-test.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
-                </tasks>
-            </configuration>
-            <goals>
-                <goal>run</goal>
-            </goals>
-        </execution>
-        <execution>
-            <id>restore-persistence</id>
-            <phase>prepare-package</phase>
-            <configuration>
-                <tasks>
-                    <echo>restoring the deployment persistence.xml</echo>
-                    <move file="${project.build.outputDirectory}/META-INF/persistence.xml.proper" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
-                </tasks>
-            </configuration>
-            <goals>
-                <goal>run</goal>
-            </goals>
-        </execution>
-    </executions>
-</plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.3</version>
+				<executions>
+					<execution>
+						<id>copy-test-persistence</id>
+						<phase>process-test-resources</phase>
+						<configuration>
+							<tasks>
+								<echo>renaming deployment persistence.xml</echo>
+								<move file="${project.build.outputDirectory}/META-INF/persistence.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml.proper"/>
+								<echo>replacing deployment persistence.xml with test version</echo>
+								<copy file="${project.build.testOutputDirectory}/META-INF/persistence-test.xml" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>restore-persistence</id>
+						<phase>prepare-package</phase>
+						<configuration>
+							<tasks>
+								<echo>restoring the deployment persistence.xml</echo>
+								<move file="${project.build.outputDirectory}/META-INF/persistence.xml.proper" tofile="${project.build.outputDirectory}/META-INF/persistence.xml" overwrite="true"/>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 ```
 
-Ele irá **substituir** o arquivo persistence.xml pelo persistence-test.xml em tempo de execução de testes, garantindo que possamos trabalhar tranquilamente com um banco de produção e outro banco para teste.
+Ele irá **substituir** o arquivo persistence.xml pelo persistence-test.xml em tempo de execução de testes, garantindo que possamos trabalhar tranquilamente com um banco de produção e outro banco p
 
 Feito isso, basta executar o testes e temos nosso primeiro teste de integração, testando a inserção das nossas entidades.
 
 Aluno: **@iratuan**
-
-Email: iratuan@gmail.com
 
